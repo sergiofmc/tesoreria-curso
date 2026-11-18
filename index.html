@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesoreria del Curso</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f0e8;--surface:#fffdf9;--surface2:#f0ebe0;
+  --accent:#2d6a4f;--accent2:#52b788;--accent3:#d4a017;
+  --danger:#c0392b;--text:#1a1a1a;--text2:#555;--text3:#999;
+  --border:#ddd5c4;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;
+  --paid:#d8f3dc;--paid-text:#1b4332;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+header{background:var(--accent);color:white;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+header h1{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;}
+header small{font-size:0.72rem;opacity:.7;display:block;}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sync-badge{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:50px;font-size:0.72rem;font-weight:600;border:1.5px solid rgba(255,255,255,0.3);cursor:pointer;background:rgba(0,0,0,0.15);white-space:nowrap;}
+.sync-badge .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#fbbf24;}
+.tabs{display:flex;gap:3px;background:rgba(0,0,0,0.2);padding:5px;border-radius:50px;flex-wrap:wrap;}
+.tab-btn{background:transparent;border:none;padding:7px 12px;border-radius:50px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:500;color:rgba(255,255,255,.65);white-space:nowrap;}
+.tab-btn.active{background:white;color:var(--accent);box-shadow:0 1px 6px rgba(0,0,0,.15);}
+.main{max-width:1300px;margin:0 auto;padding:18px 14px;}
+.panel{display:none;}.panel.active{display:block;}
+.fullscreen{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 72px);padding:16px;}
+.center-card{background:var(--surface);border-radius:20px;border:1px solid var(--border);box-shadow:0 8px 40px rgba(0,0,0,.12);padding:32px 24px;max-width:480px;width:100%;}
+.center-card h2{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--accent);margin-bottom:6px;}
+.center-card>p{color:var(--text2);font-size:.87rem;margin-bottom:18px;line-height:1.5;}
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px;}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:18px;margin-bottom:14px;}
+.card h2{font-family:'Fraunces',serif;font-size:1.05rem;color:var(--accent);margin-bottom:11px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:11px;}
+label{font-size:.73rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+input,select{padding:9px 11px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.9rem;background:white;color:var(--text);outline:none;min-width:0;max-width:100%;}
+input:focus,select:focus{border-color:var(--accent2);}
+select{text-overflow:ellipsis;}
+.btn{padding:9px 18px;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:600;cursor:pointer;}
+.btn-primary{background:var(--accent);color:white;}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-danger{background:#fde8e6;color:var(--danger);border:1px solid #f5c6c2;}
+.btn-accent{background:var(--accent3);color:#1a1000;}
+.btn-sm{padding:5px 11px;font-size:.74rem;}
+.row-form{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:9px;align-items:flex-end;}
+.alumnos-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:9px;margin-top:12px;}
+.alumno-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.alumno-name{font-weight:600;font-size:.88rem;}
+.alumno-meta{font-size:.74rem;color:var(--text2);margin-top:2px;}
+.alumno-actions{display:flex;gap:5px;}
+.historial-list{display:flex;flex-direction:column;gap:7px;margin-top:10px;max-height:360px;overflow-y:auto;}
+.pago-item{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--surface2);border-radius:9px;border-left:3px solid var(--accent2);gap:9px;}
+.gasto-item{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:#fff5f5;border-radius:9px;border-left:3px solid var(--danger);gap:9px;}
+.item-info{flex:1;}
+.item-name{font-weight:600;font-size:.86rem;}
+.item-date{font-size:.73rem;color:var(--text3);}
+.item-amount-pos{font-family:'Fraunces',serif;font-size:.98rem;font-weight:600;color:var(--accent);}
+.item-amount-neg{font-family:'Fraunces',serif;font-size:.98rem;font-weight:600;color:var(--danger);}
+.detalle-months{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px;}
+.mes-badge{padding:10px 6px;border-radius:10px;text-align:center;border:1px solid var(--border);}
+.mes-badge .mes-nombre{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);}
+.mes-badge .mes-monto{font-family:'Fraunces',serif;font-size:.92rem;margin-top:4px;}
+.mes-badge.pagado{background:var(--paid);border-color:#b7e4c7;}
+.mes-badge.pagado .mes-monto{color:var(--paid-text);}
+.mes-badge.pendiente{background:white;}
+.mes-badge.pendiente .mes-monto{color:var(--text3);}
+.tabla-wrapper{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:.78rem;background:white;}
+thead tr{background:var(--accent);color:white;}
+thead th{padding:9px 7px;text-align:center;font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
+thead th:first-child{text-align:left;padding-left:12px;}
+tbody tr:nth-child(even){background:#fafaf7;}
+tbody tr:hover{background:#f0ede5;}
+tbody td{padding:7px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody td:first-child{text-align:left;padding-left:12px;font-weight:600;font-size:.83rem;}
+.cell-paid{background:var(--paid)!important;color:var(--paid-text);font-weight:600;border-radius:4px;}
+.cell-empty{color:var(--text3);}
+.cell-pos{color:var(--paid-text);font-weight:700;}
+.cell-neg{color:var(--danger);font-weight:700;}
+tfoot tr{background:var(--surface2);font-weight:700;border-top:2px solid var(--border);}
+tfoot td{padding:8px 7px;text-align:center;}
+tfoot td:first-child{padding-left:12px;font-weight:700;}
+.total-col{background:#e8f4ee!important;color:var(--paid-text);font-weight:700;font-family:'Fraunces',serif;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-bottom:14px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px 13px;text-align:center;}
+.stat-label{font-size:.68rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.stat-value{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;color:var(--accent);margin-top:3px;}
+.stat-sub{font-size:.7rem;color:var(--text3);margin-top:2px;}
+.c-pos{color:var(--paid-text)!important;}
+.c-neg{color:var(--danger)!important;}
+.c-warn{color:var(--accent3)!important;}
+.alert{padding:10px 13px;border-radius:9px;font-size:.83rem;margin-bottom:10px;}
+.alert-success{background:var(--paid);color:var(--paid-text);border:1px solid #b7e4c7;}
+.alert-error{background:#fde8e6;color:var(--danger);border:1px solid #f5c6c2;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:var(--radius);padding:24px;width:90%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal h3{font-family:'Fraunces',serif;font-size:1.1rem;margin-bottom:13px;color:var(--accent);}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+.pin-boxes{display:flex;justify-content:center;gap:10px;margin-bottom:16px;}
+.pin-box{width:52px;height:52px;text-align:center;font-size:1.4rem;border-radius:10px;border:2px solid var(--border);font-family:'DM Sans',sans-serif;}
+.flex{display:flex;}.gap-2{gap:8px;}.mt-2{margin-top:8px;}.mt-3{margin-top:12px;}
+.text-muted{color:var(--text3);font-size:.81rem;}
+@media(max-width:600px){
+  .row-form{grid-template-columns:1fr 1fr;}
+  .row-form>*:first-child{grid-column:1/-1;}
+  .row-form>.btn{grid-column:1/-1;}
+  .detalle-months{grid-template-columns:repeat(2,1fr);}
+  .setup-grid{grid-template-columns:1fr;}
+}
+@media print{
+  @page{size:landscape;margin:10mm;}
+  header,.tabs,.sync-badge,.stats-row,.btn,button{display:none!important;}
+  body{background:white;}
+  .main{padding:0;max-width:100%;}
+  .panel{display:block!important;}
+  #panel-pagos,#panel-alumnos,#panel-detalle,#panel-gastos,#panel-balance,#panel-config{display:none!important;}
+  #panel-reporte{display:block!important;}
+  .card{box-shadow:none;border:none;padding:0;}
+  .tabla-wrapper{overflow:visible;border:none;}
+  table{font-size:7pt;width:100%;}
+  thead th{padding:4px 3px;font-size:6.5pt;}
+  tbody td{padding:3px;}
+  .cell-paid{background:var(--paid)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .total-col{background:#e8f4ee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  thead tr{background:#2d6a4f!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Tesoreria del Curso</h1>
+    <small id="header-sub">Configuracion pendiente</small>
+  </div>
+  <div class="header-right">
+    <div class="sync-badge"><div class="dot"></div><span>Local</span></div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showPanel('pagos',this)">Pagos</button>
+      <button class="tab-btn" onclick="showPanel('alumnos',this)">Alumnos</button>
+      <button class="tab-btn" onclick="showPanel('detalle',this)">Detalle</button>
+      <button class="tab-btn" onclick="showPanel('gastos',this)">Gastos</button>
+      <button class="tab-btn" onclick="showPanel('balance',this)">Balance</button>
+      <button class="tab-btn" onclick="showPanel('reporte',this)">Reporte</button>
+      <button class="tab-btn" onclick="showPanel('config',this)">Config</button>
+    </div>
+  </div>
+</header>
+
+<!-- SETUP -->
+<div id="setup-screen" class="fullscreen" style="display:none;">
+  <div class="center-card">
+    <h2>Bienvenida</h2>
+    <p>Configura los datos del curso para comenzar.</p>
+    <div class="setup-grid">
+      <div class="form-group"><label>Nombre del Curso</label><input type="text" id="setup-curso" placeholder="3 Basico A"></div>
+      <div class="form-group"><label>Anio Escolar</label><input type="number" id="setup-anio" min="2020" max="2050"></div>
+      <div class="form-group"><label>Cuota Mensual ($)</label><input type="number" id="setup-cuota" placeholder="5000" step="100"></div>
+      <div class="form-group"><label>Nombre Tesorera</label><input type="text" id="setup-tesorera" placeholder="Valentina"></div>
+      <div class="form-group"><label>PIN (4 digitos)</label><input type="password" id="setup-pin" placeholder="****" maxlength="4" inputmode="numeric"></div>
+      <div class="form-group"><label>Confirmar PIN</label><input type="password" id="setup-pin2" placeholder="****" maxlength="4" inputmode="numeric"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="finalizarSetup()">Comenzar</button>
+    <button class="btn btn-secondary" style="width:100%;margin-top:8px;font-size:.8rem;" onclick="saltarAImportar()">Ya tengo un respaldo &rarr; Importar datos</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="main" style="display:none;">
+
+  <!-- PAGOS -->
+  <div id="panel-pagos" class="panel active">
+    <div id="alert-pago"></div>
+    <div class="card">
+      <h2>Registrar Pago</h2>
+      <div class="row-form">
+        <div class="form-group"><label>Alumno</label>
+          <select id="pago-alumno" onchange="actualizarHint()"><option value="">-- Seleccionar --</option></select>
+        </div>
+        <div class="form-group"><label>Monto ($)</label><input type="number" id="pago-monto" placeholder="0" min="0"></div>
+        <div class="form-group"><label>Fecha</label><input type="date" id="pago-fecha"></div>
+        <button class="btn btn-primary" onclick="registrarPago()">Registrar</button>
+      </div>
+      <p class="text-muted mt-2" id="pago-hint"></p>
+    </div>
+    <div class="card">
+      <h2>Ultimos Pagos</h2>
+      <div id="historial-list" class="historial-list"><p class="text-muted">Sin pagos.</p></div>
+    </div>
+  </div>
+
+  <!-- ALUMNOS -->
+  <div id="panel-alumnos" class="panel">
+    <div class="card">
+      <h2>Agregar Alumno</h2>
+      <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:flex-end;">
+        <div class="form-group"><label>Nombre</label><input type="text" id="nuevo-alumno" placeholder="Apellido Nombre"></div>
+        <div class="form-group"><label>N Lista</label><input type="number" id="nuevo-numero" min="1"></div>
+        <button class="btn btn-primary" onclick="agregarAlumno()">Agregar</button>
+      </div>
+      <div id="alert-alumno" class="mt-2"></div>
+    </div>
+    <div class="card">
+      <h2>Alumnos (<span id="count-alumnos">0</span>)</h2>
+      <div id="alumnos-list" class="alumnos-list"><p class="text-muted">Sin alumnos.</p></div>
+    </div>
+  </div>
+
+  <!-- DETALLE -->
+  <div id="panel-detalle" class="panel">
+    <div class="card">
+      <h2>Detalle por Alumno</h2>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div class="form-group" style="flex:1"><label>Alumno</label>
+          <select id="detalle-alumno" onchange="verDetalle()"><option value="">-- Seleccionar --</option></select>
+        </div>
+        <button class="btn btn-accent btn-sm" onclick="window.print()">Imprimir</button>
+      </div>
+    </div>
+    <div id="detalle-content" style="display:none;">
+      <div class="stats-row" id="detalle-stats"></div>
+      <div class="card"><h2>Pagos por Mes</h2><div id="detalle-meses" class="detalle-months"></div></div>
+      <div class="card"><h2>Historial</h2><div id="detalle-historial" class="historial-list"></div></div>
+    </div>
+  </div>
+
+  <!-- GASTOS -->
+  <div id="panel-gastos" class="panel">
+    <div id="alert-gasto"></div>
+    <div class="card">
+      <h2>Registrar Gasto</h2>
+      <div class="row-form">
+        <div class="form-group"><label>Descripcion</label><input type="text" id="gasto-desc" placeholder="Materiales, evento, etc."></div>
+        <div class="form-group"><label>Monto ($)</label><input type="number" id="gasto-monto" placeholder="0" min="0"></div>
+        <div class="form-group"><label>Fecha</label><input type="date" id="gasto-fecha"></div>
+        <button class="btn btn-danger" onclick="registrarGasto()">Registrar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Historial de Gastos</h2>
+      <div id="gastos-list" class="historial-list"><p class="text-muted">Sin gastos registrados.</p></div>
+    </div>
+  </div>
+
+  <!-- BALANCE -->
+  <div id="panel-balance" class="panel">
+    <div class="stats-row" id="balance-stats"></div>
+    <div class="card">
+      <h2>Resumen por Mes</h2>
+      <div class="tabla-wrapper">
+        <table id="tabla-balance"><thead></thead><tbody></tbody><tfoot></tfoot></table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Detalle de Gastos</h2>
+      <div id="balance-gastos" class="historial-list"><p class="text-muted">Sin gastos.</p></div>
+    </div>
+  </div>
+
+  <!-- REPORTE -->
+  <div id="panel-reporte" class="panel">
+    <div class="stats-row" id="reporte-stats"></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:8px;">
+        <h2 style="margin:0;border:none;padding:0;">Reporte General</h2>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm" onclick="exportarExcel()">Excel</button>
+          <button class="btn btn-accent btn-sm" onclick="imprimirReporte()">Imprimir</button>
+        </div>
+      </div>
+      <div class="tabla-wrapper">
+        <table id="tabla-reporte"><thead></thead><tbody></tbody><tfoot></tfoot></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div id="panel-config" class="panel">
+    <div class="card">
+      <h2>Configuracion</h2>
+      <div class="form-grid">
+        <div class="form-group"><label>Curso</label><input type="text" id="cfg-curso"></div>
+        <div class="form-group"><label>Anio</label><input type="number" id="cfg-anio"></div>
+        <div class="form-group"><label>Cuota Mensual ($)</label><input type="number" id="cfg-cuota" step="100"></div>
+        <div class="form-group"><label>Tesorera</label><input type="text" id="cfg-tesorera"></div>
+        <div class="form-group"><label>Nuevo PIN (vacio = no cambia)</label><input type="password" id="cfg-pin" placeholder="****" maxlength="4" inputmode="numeric"></div>
+        <div class="form-group"><label>Confirmar PIN</label><input type="password" id="cfg-pin2" placeholder="****" maxlength="4" inputmode="numeric"></div>
+      </div>
+      <div class="mt-3 flex gap-2" style="justify-content:space-between;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="guardarConfig()">Guardar</button>
+        <button class="btn btn-danger btn-sm" onclick="borrarTodo()">Borrar todo</button>
+      </div>
+      <div id="alert-config" class="mt-2"></div>
+    </div>
+    <div class="card">
+      <h2>Exportar / Importar</h2>
+      <p class="text-muted" style="margin-bottom:12px;">Para respaldo o pasar datos entre dispositivos. Abre siempre desde la app Archivos o Chrome, no desde WhatsApp.</p>
+      <div class="flex gap-2" style="flex-wrap:wrap;margin-bottom:14px;">
+        <button class="btn btn-secondary" onclick="exportarJSON()">Exportar .json</button>
+      </div>
+      <div style="border:1.5px solid var(--border);border-radius:11px;padding:14px;">
+        <div style="font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">Importar respaldo</div>
+        <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="btn btn-secondary" onclick="document.getElementById('import-file-input').click()">Seleccionar archivo .json</button>
+          <span id="import-filename" style="font-size:.82rem;color:var(--text3);font-style:italic;">Ninguno seleccionado</span>
+        </div>
+        <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="archivoSeleccionado(event)">
+        <button class="btn btn-primary" id="import-cargar-btn" style="display:none;" onclick="cargarArchivoImport()">Cargar datos</button>
+        <div id="import-status" style="margin-top:8px;font-size:.82rem;"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- MODAL PIN -->
+<div class="modal-overlay" id="modal-pin">
+  <div class="modal" style="max-width:320px;text-align:center;">
+    <h3>PIN de seguridad</h3>
+    <p style="color:#555;font-size:.88rem;margin-bottom:16px;">Ingresa tu PIN de 4 digitos.</p>
+    <div class="pin-boxes">
+      <input type="password" id="pin-d1" class="pin-box" maxlength="1" inputmode="numeric">
+      <input type="password" id="pin-d2" class="pin-box" maxlength="1" inputmode="numeric">
+      <input type="password" id="pin-d3" class="pin-box" maxlength="1" inputmode="numeric">
+      <input type="password" id="pin-d4" class="pin-box" maxlength="1" inputmode="numeric">
+    </div>
+    <div id="pin-error" style="color:#c0392b;font-size:.82rem;min-height:18px;margin-bottom:10px;"></div>
+    <div class="modal-actions" style="justify-content:center;">
+      <button class="btn btn-secondary" onclick="cerrarPin()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarPin()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR ALUMNO -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <h3>Editar Alumno</h3>
+    <input type="hidden" id="edit-id">
+    <div class="form-group"><label>Nombre</label><input type="text" id="edit-nombre"></div>
+    <div class="form-group mt-2"><label>N Lista</label><input type="number" id="edit-numero" min="1"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEdicion()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var MESES = ['Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var KEY = 'tesoreria_v1';
+var state = {
+  config: { curso:'', anio:new Date().getFullYear(), cuota:5000, tesorera:'', pin:'' },
+  alumnos: [], pagos: [], gastos: []
+};
+
+// ---- STORAGE ----
+function cargarLocal() {
+  try {
+    var s = localStorage.getItem(KEY);
+    if (s) {
+      state = JSON.parse(s);
+      if (!state.gastos) state.gastos = [];
+    }
+  } catch(e) {}
+}
+function guardarLocal() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+}
+function guardarTodo() { guardarLocal(); }
+
+// ---- PIN ----
+var _pinCallback = null;
+
+function pedirPin(callback) {
+  _pinCallback = callback;
+  var ids = ['pin-d1','pin-d2','pin-d3','pin-d4'];
+  for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('modal-pin').classList.add('open');
+  setTimeout(function(){ document.getElementById('pin-d1').focus(); }, 100);
+}
+
+function cerrarPin() {
+  document.getElementById('modal-pin').classList.remove('open');
+  _pinCallback = null;
+}
+
+function confirmarPin() {
+  var ids = ['pin-d1','pin-d2','pin-d3','pin-d4'];
+  var pin = '';
+  for (var i = 0; i < ids.length; i++) pin += document.getElementById(ids[i]).value;
+  if (pin !== state.config.pin) {
+    document.getElementById('pin-error').textContent = 'PIN incorrecto. Intenta de nuevo.';
+    for (var j = 0; j < ids.length; j++) document.getElementById(ids[j]).value = '';
+    document.getElementById('pin-d1').focus();
+    return;
+  }
+  document.getElementById('modal-pin').classList.remove('open');
+  if (_pinCallback) { var cb = _pinCallback; _pinCallback = null; cb(); }
+}
+
+function initPinNav() {
+  var ids = ['pin-d1','pin-d2','pin-d3','pin-d4'];
+  for (var i = 0; i < ids.length; i++) {
+    (function(idx) {
+      var el = document.getElementById(ids[idx]);
+      el.addEventListener('input', function() {
+        if (el.value.length === 1 && idx < 3) document.getElementById(ids[idx+1]).focus();
+        if (el.value.length === 1 && idx === 3) confirmarPin();
+      });
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && el.value === '' && idx > 0) document.getElementById(ids[idx-1]).focus();
+      });
+    })(i);
+  }
+}
+
+// ---- INIT ----
+function init() {
+  cargarLocal();
+  var hoy = new Date().toISOString().slice(0,10);
+  document.getElementById('pago-fecha').value = hoy;
+  document.getElementById('gasto-fecha').value = hoy;
+  if (!state.config.curso) {
+    document.getElementById('setup-anio').value = new Date().getFullYear();
+    document.getElementById('setup-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  } else {
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    refreshAll();
+  }
+}
+
+function saltarAImportar() {
+  document.getElementById('setup-screen').style.display = 'none';
+  // Inicializar app con config minima para que funcione el panel config
+  if (!state.config.curso) {
+    state.config.curso = 'Sin configurar';
+    state.config.anio = new Date().getFullYear();
+    state.config.cuota = 5000;
+    state.config.tesorera = '';
+    state.config.pin = '0000';
+  }
+  document.getElementById('app').style.display = 'block';
+  refreshAll();
+  // Ir directo al panel config
+  var btns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  var panels = document.querySelectorAll('.panel');
+  for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
+  document.getElementById('panel-config').classList.add('active');
+  for (var i = 0; i < btns.length; i++) {
+    if (btns[i].textContent.indexOf('Config') >= 0) { btns[i].classList.add('active'); break; }
+  }
+  cargarConfigForm();
+}
+
+function finalizarSetup() {
+  var curso = document.getElementById('setup-curso').value.trim();
+  if (!curso) { alert('Ingresa el nombre del curso.'); return; }
+  var pin = document.getElementById('setup-pin').value.trim();
+  var pin2 = document.getElementById('setup-pin2').value.trim();
+  if (!pin || pin.length !== 4 || isNaN(Number(pin))) { alert('El PIN debe ser de 4 digitos numericos.'); return; }
+  if (pin !== pin2) { alert('Los PIN no coinciden.'); return; }
+  state.config = {
+    curso: curso,
+    anio: parseInt(document.getElementById('setup-anio').value) || new Date().getFullYear(),
+    cuota: parseInt(document.getElementById('setup-cuota').value) || 5000,
+    tesorera: document.getElementById('setup-tesorera').value.trim(),
+    pin: pin
+  };
+  guardarTodo();
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  refreshAll();
+}
+
+// ---- CONFIG ----
+function actualizarHeader() {
+  document.getElementById('header-sub').textContent =
+    state.config.curso + ' - ' + state.config.anio + ' - Cuota: $' + fmt(state.config.cuota);
+}
+
+function cargarConfigForm() {
+  document.getElementById('cfg-curso').value = state.config.curso || '';
+  document.getElementById('cfg-anio').value = state.config.anio || '';
+  document.getElementById('cfg-cuota').value = state.config.cuota || '';
+  document.getElementById('cfg-tesorera').value = state.config.tesorera || '';
+  document.getElementById('cfg-pin').value = '';
+  document.getElementById('cfg-pin2').value = '';
+}
+
+function guardarConfig() {
+  state.config.curso = document.getElementById('cfg-curso').value.trim() || state.config.curso;
+  state.config.anio = parseInt(document.getElementById('cfg-anio').value) || state.config.anio;
+  state.config.cuota = parseInt(document.getElementById('cfg-cuota').value) || state.config.cuota;
+  state.config.tesorera = document.getElementById('cfg-tesorera').value.trim();
+  var np = document.getElementById('cfg-pin').value.trim();
+  var np2 = document.getElementById('cfg-pin2').value.trim();
+  if (np) {
+    if (np.length !== 4 || isNaN(Number(np))) { showAlert('alert-config','El PIN debe ser de 4 digitos.','error'); return; }
+    if (np !== np2) { showAlert('alert-config','Los PIN no coinciden.','error'); return; }
+    state.config.pin = np;
+  }
+  actualizarHeader(); guardarTodo();
+  showAlert('alert-config','Guardado correctamente.','success');
+}
+
+function borrarTodo() {
+  if (!confirm('Borrar TODOS los datos? No se puede deshacer.')) return;
+  pedirPin(function() {
+    try { localStorage.removeItem(KEY); } catch(e) {}
+    location.reload();
+  });
+}
+
+// ---- ALUMNOS ----
+function nombreCorto(nombre) {
+  var p = nombre.trim().split(' ');
+  if (p.length < 2) return nombre;
+  if (p.length === 2) return p[1] + ' ' + p[0];
+  return p[2] + ' ' + p[0];
+}
+
+function agregarAlumno() {
+  var nombre = document.getElementById('nuevo-alumno').value.trim();
+  var num = parseInt(document.getElementById('nuevo-numero').value) || null;
+  if (!nombre) { showAlert('alert-alumno','Ingresa el nombre.','error'); return; }
+  for (var i = 0; i < state.alumnos.length; i++) {
+    if (state.alumnos[i].nombre.toLowerCase() === nombre.toLowerCase()) {
+      showAlert('alert-alumno','Ya existe ese alumno.','error'); return;
+    }
+  }
+  state.alumnos.push({ id: uid(), nombre: nombre, numero: num });
+  sortAlumnos();
+  document.getElementById('nuevo-alumno').value = '';
+  document.getElementById('nuevo-numero').value = '';
+  renderAlumnos(); renderSelects(); guardarTodo();
+  showAlert('alert-alumno', nombre + ' agregado.', 'success');
+}
+
+function sortAlumnos() {
+  state.alumnos.sort(function(a,b){
+    if (a.numero && b.numero) return a.numero - b.numero;
+    return a.nombre.localeCompare(b.nombre);
+  });
+}
+
+function renderAlumnos() {
+  var list = document.getElementById('alumnos-list');
+  document.getElementById('count-alumnos').textContent = state.alumnos.length;
+  if (!state.alumnos.length) { list.innerHTML = '<p class="text-muted">Sin alumnos.</p>'; return; }
+  var html = '';
+  for (var i = 0; i < state.alumnos.length; i++) {
+    var a = state.alumnos[i];
+    var total = 0; var n = 0;
+    for (var j = 0; j < state.pagos.length; j++) {
+      if (state.pagos[j].alumnoId === a.id) { total += state.pagos[j].monto; n++; }
+    }
+    var num = a.numero ? '<small style="color:#999">#' + a.numero + ' </small>' : '';
+    html += '<div class="alumno-card">' +
+      '<div style="flex:1"><div class="alumno-name">' + num + a.nombre + '</div>' +
+      '<div class="alumno-meta">Pagado: $' + fmt(total) + ' - ' + n + ' cuota(s)</div></div>' +
+      '<div class="alumno-actions">' +
+      '<button class="btn btn-secondary btn-sm" onclick="editarAlumno(\'' + a.id + '\')">Editar</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="eliminarAlumno(\'' + a.id + '\')">X</button>' +
+      '</div></div>';
+  }
+  list.innerHTML = html;
+}
+
+function editarAlumno(id) {
+  var a = null;
+  for (var i = 0; i < state.alumnos.length; i++) { if (state.alumnos[i].id === id) { a = state.alumnos[i]; break; } }
+  if (!a) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-nombre').value = a.nombre;
+  document.getElementById('edit-numero').value = a.numero || '';
+  document.getElementById('modal-editar').classList.add('open');
+}
+
+function guardarEdicion() {
+  var id = document.getElementById('edit-id').value;
+  var a = null;
+  for (var i = 0; i < state.alumnos.length; i++) { if (state.alumnos[i].id === id) { a = state.alumnos[i]; break; } }
+  if (!a) return;
+  var nombre = document.getElementById('edit-nombre').value.trim();
+  if (!nombre) return;
+  var num = parseInt(document.getElementById('edit-numero').value) || null;
+  cerrarModal();
+  pedirPin(function() {
+    a.nombre = nombre; a.numero = num;
+    sortAlumnos(); renderAlumnos(); renderSelects(); guardarTodo();
+  });
+}
+
+function eliminarAlumno(id) {
+  var a = null;
+  for (var i = 0; i < state.alumnos.length; i++) { if (state.alumnos[i].id === id) { a = state.alumnos[i]; break; } }
+  if (!a) return;
+  var n = 0;
+  for (var j = 0; j < state.pagos.length; j++) { if (state.pagos[j].alumnoId === id) n++; }
+  var msg = 'Eliminar a ' + a.nombre + '?' + (n > 0 ? ' Tiene ' + n + ' pago(s) que tambien se eliminaran.' : '');
+  if (!confirm(msg)) return;
+  pedirPin(function() {
+    var newA = []; for (var i = 0; i < state.alumnos.length; i++) { if (state.alumnos[i].id !== id) newA.push(state.alumnos[i]); }
+    var newP = []; for (var j = 0; j < state.pagos.length; j++) { if (state.pagos[j].alumnoId !== id) newP.push(state.pagos[j]); }
+    state.alumnos = newA; state.pagos = newP;
+    renderAlumnos(); renderSelects(); guardarTodo();
+  });
+}
+
+function cerrarModal() { document.getElementById('modal-editar').classList.remove('open'); }
+
+// ---- SELECTS ----
+function renderSelects() {
+  var sels = ['pago-alumno','detalle-alumno'];
+  for (var s = 0; s < sels.length; s++) {
+    var sel = document.getElementById(sels[s]);
+    var prev = sel.value;
+    sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+    for (var i = 0; i < state.alumnos.length; i++) {
+      sel.innerHTML += '<option value="' + state.alumnos[i].id + '">' + nombreCorto(state.alumnos[i].nombre) + '</option>';
+    }
+    if (prev) sel.value = prev;
+  }
+  actualizarHint();
+}
+
+// ---- PAGOS ----
+function actualizarHint() {
+  var id = document.getElementById('pago-alumno').value;
+  var hint = document.getElementById('pago-hint');
+  if (!id) { hint.textContent = ''; return; }
+  var a = null;
+  for (var i = 0; i < state.alumnos.length; i++) { if (state.alumnos[i].id === id) { a = state.alumnos[i]; break; } }
+  var total = 0;
+  for (var j = 0; j < state.pagos.length; j++) { if (state.pagos[j].alumnoId === id) total += state.pagos[j].monto; }
+  var esperado = state.config.cuota * 10;
+  hint.textContent = a.nombre + ' - Pagado: $' + fmt(total) + ' / $' + fmt(esperado) + ' - Pendiente: $' + fmt(Math.max(0, esperado - total));
+}
+
+function registrarPago() {
+  var alumnoId = document.getElementById('pago-alumno').value;
+  var monto = parseInt(document.getElementById('pago-monto').value);
+  var fecha = document.getElementById('pago-fecha').value;
+  if (!alumnoId) { showAlert('alert-pago','Selecciona un alumno.','error'); return; }
+  if (!monto || monto <= 0) { showAlert('alert-pago','Monto invalido.','error'); return; }
+  if (!fecha) { showAlert('alert-pago','Ingresa la fecha.','error'); return; }
+  var aid = alumnoId; var mon = monto; var fec = fecha;
+  pedirPin(function() {
+    var alumno = null;
+    for (var i = 0; i < state.alumnos.length; i++) { if (state.alumnos[i].id === aid) { alumno = state.alumnos[i]; break; } }
+    state.pagos.unshift({ id: uid(), alumnoId: aid, monto: mon, fecha: fec });
+    document.getElementById('pago-monto').value = '';
+    actualizarHint(); renderHistorial(); renderAlumnos(); guardarTodo();
+    showAlert('alert-pago', '$' + fmt(mon) + ' registrado para ' + alumno.nombre + '.', 'success');
+  });
+}
+
+function renderHistorial() {
+  var list = document.getElementById('historial-list');
+  var pagos = state.pagos.slice(0, 30);
+  if (!pagos.length) { list.innerHTML = '<p class="text-muted">Sin pagos.</p>'; return; }
+  var html = '';
+  for (var i = 0; i < pagos.length; i++) {
+    var p = pagos[i];
+    var nombre = '(eliminado)';
+    for (var j = 0; j < state.alumnos.length; j++) { if (state.alumnos[j].id === p.alumnoId) { nombre = state.alumnos[j].nombre; break; } }
+    html += '<div class="pago-item">' +
+      '<div class="item-info"><div class="item-name">' + nombre + '</div><div class="item-date">' + formatFecha(p.fecha) + '</div></div>' +
+      '<div class="item-amount-pos">$' + fmt(p.monto) + '</div>' +
+      '<button class="btn btn-danger btn-sm" onclick="eliminarPago(\'' + p.id + '\')">X</button></div>';
+  }
+  list.innerHTML = html;
+}
+
+function eliminarPago(id) {
+  if (!confirm('Eliminar este pago?')) return;
+  pedirPin(function() {
+    var newP = [];
+    for (var i = 0; i < state.pagos.length; i++) { if (state.pagos[i].id !== id) newP.push(state.pagos[i]); }
+    state.pagos = newP;
+    renderHistorial(); renderAlumnos(); guardarTodo();
+  });
+}
+
+// ---- GASTOS ----
+function registrarGasto() {
+  var desc = document.getElementById('gasto-desc').value.trim();
+  var monto = parseInt(document.getElementById('gasto-monto').value);
+  var fecha = document.getElementById('gasto-fecha').value;
+  if (!desc) { showAlert('alert-gasto','Ingresa una descripcion.','error'); return; }
+  if (!monto || monto <= 0) { showAlert('alert-gasto','Monto invalido.','error'); return; }
+  if (!fecha) { showAlert('alert-gasto','Ingresa la fecha.','error'); return; }
+  var d = desc; var m = monto; var f = fecha;
+  pedirPin(function() {
+    state.gastos.unshift({ id: uid(), desc: d, monto: m, fecha: f });
+    document.getElementById('gasto-desc').value = '';
+    document.getElementById('gasto-monto').value = '';
+    renderGastos(); guardarTodo();
+    showAlert('alert-gasto', '$' + fmt(m) + ' registrado: ' + d, 'success');
+  });
+}
+
+function renderGastos() {
+  var list = document.getElementById('gastos-list');
+  if (!state.gastos.length) { list.innerHTML = '<p class="text-muted">Sin gastos registrados.</p>'; return; }
+  var html = '';
+  for (var i = 0; i < state.gastos.length; i++) {
+    var g = state.gastos[i];
+    html += '<div class="gasto-item">' +
+      '<div class="item-info"><div class="item-name">' + g.desc + '</div><div class="item-date">' + formatFecha(g.fecha) + '</div></div>' +
+      '<div class="item-amount-neg">-$' + fmt(g.monto) + '</div>' +
+      '<button class="btn btn-danger btn-sm" onclick="eliminarGasto(\'' + g.id + '\')">X</button></div>';
+  }
+  list.innerHTML = html;
+}
+
+function eliminarGasto(id) {
+  if (!confirm('Eliminar este gasto?')) return;
+  pedirPin(function() {
+    var newG = [];
+    for (var i = 0; i < state.gastos.length; i++) { if (state.gastos[i].id !== id) newG.push(state.gastos[i]); }
+    state.gastos = newG;
+    renderGastos(); guardarTodo();
+  });
+}
+
+// ---- DETALLE ----
+function verDetalle() {
+  var alumnoId = document.getElementById('detalle-alumno').value;
+  var content = document.getElementById('detalle-content');
+  if (!alumnoId) { content.style.display = 'none'; return; }
+  var pagosA = [];
+  for (var i = 0; i < state.pagos.length; i++) { if (state.pagos[i].alumnoId === alumnoId) pagosA.push(state.pagos[i]); }
+  pagosA.sort(function(x,y){ return new Date(x.fecha) - new Date(y.fecha); });
+  var total = 0; for (var i = 0; i < pagosA.length; i++) total += pagosA[i].monto;
+  var esperado = state.config.cuota * 10;
+  var pendiente = Math.max(0, esperado - total);
+  var cPos = 'var(--paid-text)'; var cNeg = 'var(--accent3)';
+  var estadoColor = pendiente <= 0 ? cPos : cNeg;
+  var estadoText = pendiente <= 0 ? 'Al dia' : 'Pendiente';
+  document.getElementById('detalle-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Pagado</div><div class="stat-value">$' + fmt(total) + '</div><div class="stat-sub">de $' + fmt(esperado) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Pendiente</div><div class="stat-value" style="color:' + estadoColor + '">$' + fmt(pendiente) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Pagos</div><div class="stat-value">' + pagosA.length + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Estado</div><div class="stat-value" style="font-size:.85rem;color:' + estadoColor + '">' + estadoText + '</div></div>';
+  var md = calcularMeses(pagosA);
+  var mHtml = '';
+  for (var i = 0; i < MESES.length; i++) {
+    var cls = md[i] > 0 ? 'pagado' : 'pendiente';
+    var val = md[i] > 0 ? '$' + fmt(md[i]) : '-';
+    mHtml += '<div class="mes-badge ' + cls + '"><div class="mes-nombre">' + MESES[i] + '</div><div class="mes-monto">' + val + '</div></div>';
+  }
+  document.getElementById('detalle-meses').innerHTML = mHtml;
+  if (!pagosA.length) { document.getElementById('detalle-historial').innerHTML = '<p class="text-muted">Sin pagos.</p>'; }
+  else {
+    var rev = pagosA.slice().reverse(); var hHtml = '';
+    for (var i = 0; i < rev.length; i++) {
+      hHtml += '<div class="pago-item"><div class="item-info"><div class="item-name">Pago</div><div class="item-date">' + formatFecha(rev[i].fecha) + '</div></div><div class="item-amount-pos">$' + fmt(rev[i].monto) + '</div></div>';
+    }
+    document.getElementById('detalle-historial').innerHTML = hHtml;
+  }
+  content.style.display = 'block';
+}
+
+function calcularMeses(pagos) {
+  var cuota = state.config.cuota;
+  var acum = 0; for (var i = 0; i < pagos.length; i++) acum += pagos[i].monto;
+  var res = [];
+  for (var i = 0; i < 10; i++) {
+    if (acum >= (i+1)*cuota) res.push(cuota);
+    else if (acum > i*cuota) res.push(acum - i*cuota);
+    else res.push(0);
+  }
+  return res;
+}
+
+// ---- BALANCE ----
+function renderBalance() {
+  var totalIngresos = 0; for (var i = 0; i < state.pagos.length; i++) totalIngresos += state.pagos[i].monto;
+  var totalGastos = 0; for (var i = 0; i < state.gastos.length; i++) totalGastos += state.gastos[i].monto;
+  var saldo = totalIngresos - totalGastos;
+  var esperado = state.alumnos.length * state.config.cuota * 10;
+  var sClass = saldo >= 0 ? 'c-pos' : 'c-neg';
+  document.getElementById('balance-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Total Ingresos</div><div class="stat-value c-pos">$' + fmt(totalIngresos) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Total Gastos</div><div class="stat-value c-neg">-$' + fmt(totalGastos) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Saldo Actual</div><div class="stat-value ' + sClass + '">$' + fmt(saldo) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Por recaudar</div><div class="stat-value c-warn">$' + fmt(Math.max(0, esperado - totalIngresos)) + '</div></div>';
+
+  var ingM = [0,0,0,0,0,0,0,0,0,0];
+  var gasM = [0,0,0,0,0,0,0,0,0,0];
+  for (var i = 0; i < state.pagos.length; i++) {
+    var d = new Date(state.pagos[i].fecha + 'T12:00:00');
+    var idx = d.getMonth() - 2; if (idx < 0) idx += 12;
+    if (idx >= 0 && idx < 10) ingM[idx] += state.pagos[i].monto;
+  }
+  for (var i = 0; i < state.gastos.length; i++) {
+    var d = new Date(state.gastos[i].fecha + 'T12:00:00');
+    var idx = d.getMonth() - 2; if (idx < 0) idx += 12;
+    if (idx >= 0 && idx < 10) gasM[idx] += state.gastos[i].monto;
+  }
+
+  var tabla = document.getElementById('tabla-balance');
+  tabla.querySelector('thead').innerHTML = '<tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Saldo</th></tr>';
+  var rows = ''; var totI = 0; var totG = 0;
+  for (var i = 0; i < MESES.length; i++) {
+    var ing = ingM[i]; var gas = gasM[i]; var sal = ing - gas;
+    totI += ing; totG += gas;
+    var sc = sal >= 0 ? 'cell-pos' : 'cell-neg';
+    rows += '<tr><td>' + MESES[i] + '</td>' +
+      '<td class="cell-pos">$' + fmt(ing) + '</td>' +
+      '<td class="cell-neg">-$' + fmt(gas) + '</td>' +
+      '<td class="' + sc + '">$' + fmt(sal) + '</td></tr>';
+  }
+  tabla.querySelector('tbody').innerHTML = rows;
+  var totSal = totI - totG;
+  var tsc = totSal >= 0 ? 'cell-pos' : 'cell-neg';
+  tabla.querySelector('tfoot').innerHTML = '<tr>' +
+    '<td style="padding-left:12px;font-weight:700">TOTAL</td>' +
+    '<td class="cell-pos" style="font-weight:700">$' + fmt(totI) + '</td>' +
+    '<td class="cell-neg" style="font-weight:700">-$' + fmt(totG) + '</td>' +
+    '<td class="' + tsc + '" style="font-weight:700">$' + fmt(totSal) + '</td></tr>';
+
+  var bg = document.getElementById('balance-gastos');
+  if (!state.gastos.length) { bg.innerHTML = '<p class="text-muted">Sin gastos.</p>'; return; }
+  var gh = '';
+  for (var i = 0; i < state.gastos.length; i++) {
+    var g = state.gastos[i];
+    gh += '<div class="gasto-item"><div class="item-info"><div class="item-name">' + g.desc + '</div><div class="item-date">' + formatFecha(g.fecha) + '</div></div><div class="item-amount-neg">-$' + fmt(g.monto) + '</div></div>';
+  }
+  bg.innerHTML = gh;
+}
+
+// ---- REPORTE ----
+function renderReporte() {
+  var tabla = document.getElementById('tabla-reporte');
+  var headRow = '<tr><th>Alumno</th>';
+  for (var i = 0; i < MESES.length; i++) headRow += '<th>' + MESES[i] + '</th>';
+  headRow += '<th>TOTAL</th></tr>';
+  tabla.querySelector('thead').innerHTML = headRow;
+  var totalGlobal = 0;
+  var totMes = [0,0,0,0,0,0,0,0,0,0];
+  var rows = '';
+  for (var a = 0; a < state.alumnos.length; a++) {
+    var al = state.alumnos[a];
+    var pagosA = [];
+    for (var p = 0; p < state.pagos.length; p++) { if (state.pagos[p].alumnoId === al.id) pagosA.push(state.pagos[p]); }
+    pagosA.sort(function(x,y){ return new Date(x.fecha) - new Date(y.fecha); });
+    var md = calcularMeses(pagosA);
+    var tot = 0; for (var m = 0; m < md.length; m++) tot += md[m];
+    totalGlobal += tot;
+    for (var m = 0; m < md.length; m++) totMes[m] += md[m];
+    var num = al.numero ? '<small style="color:#999">#' + al.numero + ' </small>' : '';
+    rows += '<tr><td>' + num + al.nombre + '</td>';
+    for (var m = 0; m < md.length; m++) {
+      rows += md[m] > 0 ? '<td class="cell-paid">$' + fmt(md[m]) + '</td>' : '<td class="cell-empty">-</td>';
+    }
+    rows += '<td class="total-col">$' + fmt(tot) + '</td></tr>';
+  }
+  tabla.querySelector('tbody').innerHTML = rows || '<tr><td colspan="12" style="text-align:center;color:#999;padding:20px">Sin datos.</td></tr>';
+  var foot = '<tr><td>TOTALES</td>';
+  for (var m = 0; m < totMes.length; m++) foot += '<td class="total-col">$' + fmt(totMes[m]) + '</td>';
+  foot += '<td class="total-col">$' + fmt(totalGlobal) + '</td></tr>';
+  tabla.querySelector('tfoot').innerHTML = foot;
+  var esperado = state.alumnos.length * state.config.cuota * 10;
+  document.getElementById('reporte-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Alumnos</div><div class="stat-value">' + state.alumnos.length + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Recaudado</div><div class="stat-value">$' + fmt(totalGlobal) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Esperado</div><div class="stat-value">$' + fmt(esperado) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Por recaudar</div><div class="stat-value c-warn">$' + fmt(Math.max(0, esperado - totalGlobal)) + '</div></div>';
+}
+
+function imprimirReporte() {
+  var panels = document.querySelectorAll('.panel');
+  for (var i = 0; i < panels.length; i++) panels[i].dataset.wasActive = panels[i].classList.contains('active');
+  for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
+  document.getElementById('panel-reporte').classList.add('active');
+  window.print();
+  setTimeout(function() {
+    var panels2 = document.querySelectorAll('.panel');
+    for (var i = 0; i < panels2.length; i++) { if (panels2[i].dataset.wasActive === 'true') panels2[i].classList.add('active'); }
+  }, 500);
+}
+
+function exportarExcel() {
+  var tabla = document.getElementById('tabla-reporte');
+  var rows = [];
+  var ths = tabla.querySelectorAll('thead th');
+  var hrow = []; for (var i = 0; i < ths.length; i++) hrow.push(ths[i].textContent.trim());
+  rows.push(hrow);
+  var trs = tabla.querySelectorAll('tbody tr');
+  for (var i = 0; i < trs.length; i++) {
+    var tds = trs[i].querySelectorAll('td'); var row = [];
+    for (var j = 0; j < tds.length; j++) {
+      var txt = tds[j].textContent.trim();
+      if (txt === '-') row.push('');
+      else if (txt.charAt(0) === '$') row.push(txt.replace(/\$/g,'').replace(/\./g,''));
+      else row.push(txt);
+    }
+    rows.push(row);
+  }
+  var ftds = tabla.querySelectorAll('tfoot td'); var frow = [];
+  for (var i = 0; i < ftds.length; i++) frow.push(ftds[i].textContent.trim());
+  rows.push(frow);
+  var bom = '\uFEFF';
+  var csv = bom;
+  for (var i = 0; i < rows.length; i++) {
+    var line = '';
+    for (var j = 0; j < rows[i].length; j++) {
+      var s = String(rows[i][j]);
+      if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0) s = '"' + s.replace(/"/g,'""') + '"';
+      if (j > 0) line += ',';
+      line += s;
+    }
+    csv += line + '\r\n';
+  }
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'reporte_' + (state.config.curso || 'curso').replace(/ /g,'_') + '.csv';
+  a.click();
+}
+
+// ---- EXPORTAR / IMPORTAR ----
+function exportarJSON() {
+  var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tesoreria_' + (state.config.curso || 'curso').replace(/ /g,'_') + '.json';
+  a.click();
+}
+
+var _importFileData = null;
+
+function archivoSeleccionado(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var nameEl = document.getElementById('import-filename');
+  var btnEl = document.getElementById('import-cargar-btn');
+  var statusEl = document.getElementById('import-status');
+  nameEl.style.color = 'var(--text)';
+  nameEl.style.fontStyle = 'normal';
+  nameEl.textContent = file.name;
+  statusEl.textContent = 'Leyendo archivo...';
+  statusEl.style.color = 'var(--text3)';
+  _importFileData = null;
+  btnEl.style.display = 'none';
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var data = JSON.parse(ev.target.result);
+      if (!data.config || !data.alumnos) throw new Error('invalid');
+      _importFileData = data;
+      var na = data.alumnos ? data.alumnos.length : 0;
+      var np = data.pagos ? data.pagos.length : 0;
+      statusEl.textContent = 'Archivo valido: ' + na + ' alumnos, ' + np + ' pagos. Haz clic en Cargar datos para confirmar.';
+      statusEl.style.color = 'var(--paid-text)';
+      btnEl.style.display = 'inline-block';
+    } catch(err) {
+      statusEl.textContent = 'Archivo invalido o no es un respaldo de esta app.';
+      statusEl.style.color = 'var(--danger)';
+      btnEl.style.display = 'none';
+      _importFileData = null;
+    }
+  };
+  reader.onerror = function() {
+    statusEl.textContent = 'Error al leer el archivo. Intentalo de nuevo.';
+    statusEl.style.color = 'var(--danger)';
+  };
+  reader.readAsText(file);
+}
+
+function _doImport() {
+  var data = _importFileData;
+  state = data;
+  if (!state.gastos) state.gastos = [];
+  guardarTodo(); refreshAll();
+  document.getElementById('import-filename').textContent = 'Ninguno seleccionado';
+  document.getElementById('import-filename').style.color = 'var(--text3)';
+  document.getElementById('import-filename').style.fontStyle = 'italic';
+  document.getElementById('import-cargar-btn').style.display = 'none';
+  document.getElementById('import-status').textContent = '';
+  document.getElementById('import-file-input').value = '';
+  _importFileData = null;
+  showAlert('alert-config','Datos importados correctamente. ' + state.alumnos.length + ' alumnos y ' + state.pagos.length + ' pagos cargados.','success');
+}
+
+function cargarArchivoImport() {
+  if (!_importFileData) return;
+  // Si no hay PIN configurado todavia (primer uso), importar sin pedirlo
+  if (!state.config.pin || state.config.pin === '0000') {
+    _doImport();
+  } else {
+    pedirPin(_doImport);
+  }
+}
+
+// ---- NAVEGACION ----
+function showPanel(name, btn) {
+  var panels = document.querySelectorAll('.panel');
+  for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
+  var btns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'reporte') renderReporte();
+  if (name === 'config') cargarConfigForm();
+  if (name === 'gastos') renderGastos();
+  if (name === 'balance') renderBalance();
+}
+
+function refreshAll() {
+  actualizarHeader();
+  renderAlumnos();
+  renderSelects();
+  renderHistorial();
+  renderGastos();
+  cargarConfigForm();
+}
+
+// ---- UTILS ----
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function fmt(n) { return Number(n).toLocaleString('es-CL'); }
+function formatFecha(str) {
+  if (!str) return '-';
+  var p = str.split('-');
+  var ms = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return parseInt(p[2]) + ' ' + ms[parseInt(p[1])-1] + ' ' + p[0];
+}
+function showAlert(targetId, msg, type) {
+  var el = document.getElementById(targetId);
+  if (!el) return;
+  el.innerHTML = '<div class="alert alert-' + type + '">' + msg + '</div>';
+  setTimeout(function(){ el.innerHTML = ''; }, 3500);
+}
+
+document.addEventListener('DOMContentLoaded', function() { init(); initPinNav(); });
+</script>
+</body>
+</html>
