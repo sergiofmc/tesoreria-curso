@@ -469,8 +469,7 @@ var _pinCallback = null;
 function pedirPin(callback) {
   if (!state.config.pin || state.config.pin === '0000') { callback(); return; }
   _pinCallback = callback;
-  var ids = ['pin-d1','pin-d2','pin-d3','pin-d4'];
-  for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
+  limpiarPin('pin-d');
   document.getElementById('pin-error').textContent = '';
   document.getElementById('modal-pin').classList.add('open');
   setTimeout(function(){ document.getElementById('pin-d1').focus(); }, 100);
@@ -482,13 +481,11 @@ function cerrarPin() {
 }
 
 function confirmarPin() {
-  var ids = ['pin-d1','pin-d2','pin-d3','pin-d4'];
-  var pin = '';
-  for (var i = 0; i < ids.length; i++) pin += document.getElementById(ids[i]).value;
+  var pin = leerPin('pin-d');
   pinCoincide(pin, function(ok) {
     if (!ok) {
       document.getElementById('pin-error').textContent = 'PIN incorrecto. Intenta de nuevo.';
-      for (var j = 0; j < ids.length; j++) document.getElementById(ids[j]).value = '';
+      limpiarPin('pin-d');
       document.getElementById('pin-d1').focus();
       return;
     }
@@ -497,14 +494,38 @@ function confirmarPin() {
   });
 }
 
+var PIN_DOT = String.fromCharCode(8226);
+
+// Lee el PIN de 4 casillas (el digito real vive en data-d; la casilla muestra un punto)
+function leerPin(prefix) {
+  var pin = '';
+  for (var i = 1; i <= 4; i++) {
+    var el = document.getElementById(prefix + i);
+    if (el.value) pin += (el.getAttribute('data-d') || '');
+  }
+  return pin;
+}
+function limpiarPin(prefix) {
+  for (var i = 1; i <= 4; i++) {
+    var el = document.getElementById(prefix + i);
+    el.value = '';
+    el.removeAttribute('data-d');
+  }
+}
+
 function _initPinBoxes(prefix, onComplete) {
   var ids = [prefix + '1', prefix + '2', prefix + '3', prefix + '4'];
   for (var i = 0; i < ids.length; i++) {
     (function(idx) {
       var el = document.getElementById(ids[idx]);
+      el.addEventListener('focus', function() { try { el.select(); } catch(e) {} });
       el.addEventListener('input', function() {
-        if (el.value.length === 1 && idx < 3) document.getElementById(ids[idx+1]).focus();
-        if (el.value.length === 1 && idx === 3) onComplete();
+        var v = el.value.replace(/[^0-9]/g, '');
+        if (!v) { el.value = ''; el.removeAttribute('data-d'); return; }
+        el.setAttribute('data-d', v.charAt(v.length - 1));
+        el.value = PIN_DOT;
+        if (idx < 3) document.getElementById(ids[idx+1]).focus();
+        if (idx === 3) onComplete();
       });
       el.addEventListener('keydown', function(e) {
         if (e.key === 'Backspace' && el.value === '' && idx > 0) document.getElementById(ids[idx-1]).focus();
@@ -521,8 +542,7 @@ function mostrarLogin() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
-  var ids = ['login-d1','login-d2','login-d3','login-d4'];
-  for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
+  limpiarPin('login-d');
   document.getElementById('login-error').textContent = '';
   setTimeout(function(){ document.getElementById('login-d1').focus(); }, 100);
 }
@@ -535,14 +555,12 @@ function entrarApp() {
 }
 
 function verificarLogin() {
-  var ids = ['login-d1','login-d2','login-d3','login-d4'];
-  var pin = '';
-  for (var i = 0; i < ids.length; i++) pin += document.getElementById(ids[i]).value;
+  var pin = leerPin('login-d');
   if (pin.length !== 4) return;
   pinCoincide(pin, function(ok) {
     if (!ok) {
       document.getElementById('login-error').textContent = 'PIN incorrecto. Intenta de nuevo.';
-      for (var j = 0; j < ids.length; j++) document.getElementById(ids[j]).value = '';
+      limpiarPin('login-d');
       document.getElementById('login-d1').focus();
       return;
     }
