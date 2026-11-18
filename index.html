@@ -132,7 +132,7 @@ tfoot td:first-child{padding-left:12px;font-weight:700;}
 </head>
 <body>
 
-<header>
+<header id="app-header">
   <div>
     <h1>Tesoreria del Curso</h1>
     <small id="header-sub">Configuracion pendiente</small>
@@ -150,6 +150,22 @@ tfoot td:first-child{padding-left:12px;font-weight:700;}
     </div>
   </div>
 </header>
+
+<!-- LOGIN -->
+<div id="login-screen" class="fullscreen" style="display:none;">
+  <div class="center-card" style="max-width:340px;text-align:center;">
+    <h2>Tesoreria del Curso</h2>
+    <p>Ingresa tu PIN de 4 digitos para continuar.</p>
+    <div class="pin-boxes">
+      <input type="password" id="login-d1" class="pin-box" maxlength="1" inputmode="numeric">
+      <input type="password" id="login-d2" class="pin-box" maxlength="1" inputmode="numeric">
+      <input type="password" id="login-d3" class="pin-box" maxlength="1" inputmode="numeric">
+      <input type="password" id="login-d4" class="pin-box" maxlength="1" inputmode="numeric">
+    </div>
+    <div id="login-error" style="color:#c0392b;font-size:.82rem;min-height:18px;margin-bottom:10px;"></div>
+    <button class="btn btn-primary" style="width:100%;" onclick="verificarLogin()">Entrar</button>
+  </div>
+</div>
 
 <!-- SETUP -->
 <div id="setup-screen" class="fullscreen" style="display:none;">
@@ -373,10 +389,85 @@ function guardarLocal() {
 }
 function guardarTodo() { guardarLocal(); }
 
+// ---- SHA-1 ----
+var DEFAULT_PIN_HASH = '99cc47b994c504f0edb738d271249b1580b9be2d';
+
+function esHash(s) { return /^[0-9a-f]{40}$/.test(s || ''); }
+function esPinPlano(s) { return /^[0-9]{4}$/.test(s || ''); }
+
+function _sha1Js(str) {
+  var b = [], i, t;
+  for (i = 0; i < str.length; i++) b.push(str.charCodeAt(i) & 255);
+  var l = b.length;
+  b.push(0x80);
+  while (b.length % 64 !== 56) b.push(0);
+  var bits = l * 8;
+  for (i = 7; i >= 0; i--) b.push(i > 3 ? 0 : (bits >>> (i * 8)) & 255);
+  function rotl(n, s) { return (n << s) | (n >>> (32 - s)); }
+  var h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 = 0x10325476, h4 = 0xC3D2E1F0;
+  for (var o = 0; o < b.length; o += 64) {
+    var w = [];
+    for (t = 0; t < 16; t++) w[t] = (b[o+4*t] << 24) | (b[o+4*t+1] << 16) | (b[o+4*t+2] << 8) | b[o+4*t+3];
+    for (t = 16; t < 80; t++) w[t] = rotl(w[t-3] ^ w[t-8] ^ w[t-14] ^ w[t-16], 1);
+    var a = h0, bb = h1, c = h2, d = h3, e = h4, f, k, tmp;
+    for (t = 0; t < 80; t++) {
+      if (t < 20) { f = (bb & c) | (~bb & d); k = 0x5A827999; }
+      else if (t < 40) { f = bb ^ c ^ d; k = 0x6ED9EBA1; }
+      else if (t < 60) { f = (bb & c) | (bb & d) | (c & d); k = 0x8F1BBCDC; }
+      else { f = bb ^ c ^ d; k = 0xCA62C1D6; }
+      tmp = (rotl(a, 5) + f + e + k + w[t]) | 0;
+      e = d; d = c; c = rotl(bb, 30); bb = a; a = tmp;
+    }
+    h0 = (h0 + a) | 0; h1 = (h1 + bb) | 0; h2 = (h2 + c) | 0; h3 = (h3 + d) | 0; h4 = (h4 + e) | 0;
+  }
+  var hs = [h0, h1, h2, h3, h4], out = '';
+  for (i = 0; i < 5; i++) out += ('00000000' + (hs[i] >>> 0).toString(16)).slice(-8);
+  return out;
+}
+
+// sha1(texto, callback(hexHash)) - usa Web Crypto; si no esta disponible
+// (p. ej. contexto no seguro) cae a una implementacion en JS.
+function sha1(str, cb) {
+  var done = false;
+  function fallback() { if (done) return; done = true; cb(_sha1Js(str)); }
+  try {
+    if (window.crypto && window.crypto.subtle && window.Uint8Array) {
+      var bytes = new Uint8Array(str.length);
+      for (var i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i) & 255;
+      window.crypto.subtle.digest('SHA-1', bytes).then(function(buf) {
+        if (done) return;
+        done = true;
+        var v = new Uint8Array(buf), hex = '';
+        for (var j = 0; j < v.length; j++) hex += ('0' + v[j].toString(16)).slice(-2);
+        cb(hex);
+      }, fallback);
+      return;
+    }
+  } catch (e) {}
+  fallback();
+}
+
+// Compara un PIN en texto con el guardado (hash; tolera texto plano heredado).
+function pinCoincide(pin, cb) {
+  var guardado = state.config.pin || DEFAULT_PIN_HASH;
+  if (!esHash(guardado)) { cb(pin === guardado); return; }
+  sha1(pin, function(h) { cb(h === guardado); });
+}
+
+// Convierte un PIN de 4 digitos en texto plano a SHA-1 dentro de cfg.
+function migrarPinCfg(cfg, cb) {
+  if (cfg && esPinPlano(cfg.pin) && cfg.pin !== '0000') {
+    sha1(cfg.pin, function(h) { cfg.pin = h; cb(true); });
+  } else {
+    cb(false);
+  }
+}
+
 // ---- PIN ----
 var _pinCallback = null;
 
 function pedirPin(callback) {
+  if (!state.config.pin || state.config.pin === '0000') { callback(); return; }
   _pinCallback = callback;
   var ids = ['pin-d1','pin-d2','pin-d3','pin-d4'];
   for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
@@ -394,30 +485,69 @@ function confirmarPin() {
   var ids = ['pin-d1','pin-d2','pin-d3','pin-d4'];
   var pin = '';
   for (var i = 0; i < ids.length; i++) pin += document.getElementById(ids[i]).value;
-  if (pin !== state.config.pin) {
-    document.getElementById('pin-error').textContent = 'PIN incorrecto. Intenta de nuevo.';
-    for (var j = 0; j < ids.length; j++) document.getElementById(ids[j]).value = '';
-    document.getElementById('pin-d1').focus();
-    return;
-  }
-  document.getElementById('modal-pin').classList.remove('open');
-  if (_pinCallback) { var cb = _pinCallback; _pinCallback = null; cb(); }
+  pinCoincide(pin, function(ok) {
+    if (!ok) {
+      document.getElementById('pin-error').textContent = 'PIN incorrecto. Intenta de nuevo.';
+      for (var j = 0; j < ids.length; j++) document.getElementById(ids[j]).value = '';
+      document.getElementById('pin-d1').focus();
+      return;
+    }
+    document.getElementById('modal-pin').classList.remove('open');
+    if (_pinCallback) { var cb = _pinCallback; _pinCallback = null; cb(); }
+  });
 }
 
-function initPinNav() {
-  var ids = ['pin-d1','pin-d2','pin-d3','pin-d4'];
+function _initPinBoxes(prefix, onComplete) {
+  var ids = [prefix + '1', prefix + '2', prefix + '3', prefix + '4'];
   for (var i = 0; i < ids.length; i++) {
     (function(idx) {
       var el = document.getElementById(ids[idx]);
       el.addEventListener('input', function() {
         if (el.value.length === 1 && idx < 3) document.getElementById(ids[idx+1]).focus();
-        if (el.value.length === 1 && idx === 3) confirmarPin();
+        if (el.value.length === 1 && idx === 3) onComplete();
       });
       el.addEventListener('keydown', function(e) {
         if (e.key === 'Backspace' && el.value === '' && idx > 0) document.getElementById(ids[idx-1]).focus();
       });
     })(i);
   }
+}
+function initPinNav() { _initPinBoxes('pin-d', confirmarPin); }
+function initLoginNav() { _initPinBoxes('login-d', verificarLogin); }
+
+// ---- LOGIN ----
+function mostrarLogin() {
+  document.getElementById('app-header').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  var ids = ['login-d1','login-d2','login-d3','login-d4'];
+  for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
+  document.getElementById('login-error').textContent = '';
+  setTimeout(function(){ document.getElementById('login-d1').focus(); }, 100);
+}
+
+function entrarApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-header').style.display = '';
+  document.getElementById('app').style.display = 'block';
+  refreshAll();
+}
+
+function verificarLogin() {
+  var ids = ['login-d1','login-d2','login-d3','login-d4'];
+  var pin = '';
+  for (var i = 0; i < ids.length; i++) pin += document.getElementById(ids[i]).value;
+  if (pin.length !== 4) return;
+  pinCoincide(pin, function(ok) {
+    if (!ok) {
+      document.getElementById('login-error').textContent = 'PIN incorrecto. Intenta de nuevo.';
+      for (var j = 0; j < ids.length; j++) document.getElementById(ids[j]).value = '';
+      document.getElementById('login-d1').focus();
+      return;
+    }
+    entrarApp();
+  });
 }
 
 // ---- INIT ----
@@ -431,9 +561,11 @@ function init() {
     document.getElementById('setup-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   } else {
-    document.getElementById('setup-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    refreshAll();
+    // Migra PIN en texto plano heredado a SHA-1 y exige login
+    migrarPinCfg(state.config, function(cambio) {
+      if (cambio) guardarLocal();
+      if (state.config.pin === '0000') entrarApp(); else mostrarLogin();
+    });
   }
 }
 
@@ -468,17 +600,19 @@ function finalizarSetup() {
   var pin2 = document.getElementById('setup-pin2').value.trim();
   if (!pin || pin.length !== 4 || isNaN(Number(pin))) { alert('El PIN debe ser de 4 digitos numericos.'); return; }
   if (pin !== pin2) { alert('Los PIN no coinciden.'); return; }
-  state.config = {
-    curso: curso,
-    anio: parseInt(document.getElementById('setup-anio').value) || new Date().getFullYear(),
-    cuota: parseInt(document.getElementById('setup-cuota').value) || 5000,
-    tesorera: document.getElementById('setup-tesorera').value.trim(),
-    pin: pin
-  };
-  guardarTodo();
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  refreshAll();
+  sha1(pin, function(hash) {
+    state.config = {
+      curso: curso,
+      anio: parseInt(document.getElementById('setup-anio').value) || new Date().getFullYear(),
+      cuota: parseInt(document.getElementById('setup-cuota').value) || 5000,
+      tesorera: document.getElementById('setup-tesorera').value.trim(),
+      pin: hash
+    };
+    guardarTodo();
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    refreshAll();
+  });
 }
 
 // ---- CONFIG ----
@@ -503,13 +637,19 @@ function guardarConfig() {
   state.config.tesorera = document.getElementById('cfg-tesorera').value.trim();
   var np = document.getElementById('cfg-pin').value.trim();
   var np2 = document.getElementById('cfg-pin2').value.trim();
+  function terminar() {
+    actualizarHeader(); guardarTodo();
+    document.getElementById('cfg-pin').value = '';
+    document.getElementById('cfg-pin2').value = '';
+    showAlert('alert-config','Guardado correctamente.','success');
+  }
   if (np) {
     if (np.length !== 4 || isNaN(Number(np))) { showAlert('alert-config','El PIN debe ser de 4 digitos.','error'); return; }
     if (np !== np2) { showAlert('alert-config','Los PIN no coinciden.','error'); return; }
-    state.config.pin = np;
+    sha1(np, function(h) { state.config.pin = h; terminar(); });
+  } else {
+    terminar();
   }
-  actualizarHeader(); guardarTodo();
-  showAlert('alert-config','Guardado correctamente.','success');
 }
 
 function borrarTodo() {
@@ -981,6 +1121,11 @@ function archivoSeleccionado(e) {
 
 function _doImport() {
   var data = _importFileData;
+  // PIN en texto plano (4 digitos) en el respaldo -> migrar a SHA-1
+  migrarPinCfg(data.config, function() { _finalizarImport(data); });
+}
+
+function _finalizarImport(data) {
   state = data;
   if (!state.gastos) state.gastos = [];
   guardarTodo(); refreshAll();
@@ -1043,7 +1188,7 @@ function showAlert(targetId, msg, type) {
   setTimeout(function(){ el.innerHTML = ''; }, 3500);
 }
 
-document.addEventListener('DOMContentLoaded', function() { init(); initPinNav(); });
+document.addEventListener('DOMContentLoaded', function() { init(); initPinNav(); initLoginNav(); });
 </script>
 </body>
 </html>
